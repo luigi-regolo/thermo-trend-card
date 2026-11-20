@@ -311,10 +311,9 @@ button:focus-visible{outline:2px solid var(--hc-accent);outline-offset:2px}
 .ch text{font-family:inherit;font-size:9.5px;fill:var(--hc-muted);font-variant-numeric:tabular-nums}
 .ch text.sc{font-weight:700;fill:var(--hc-fg);paint-order:stroke;stroke:var(--hc-tile);stroke-width:3px;stroke-linejoin:round}
 .ax{display:flex;justify-content:space-between;font-size:9.5px;color:var(--hc-muted);margin-top:5px;font-variant-numeric:tabular-nums}
-.cap{font-size:10.5px;color:var(--hc-muted);margin-top:7px;text-align:center}.cap b{color:var(--hc-fg)}
+.cap{font-size:10.5px;line-height:14px;height:14px;color:var(--hc-muted);margin-top:7px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cap b{color:var(--hc-fg)}
 .cap .sw{display:inline-block;width:14px;height:0;border-top:2.5px solid var(--hc-accent);vertical-align:middle;margin-right:3px;border-radius:2px}
 .cap .sw.d{border-top:2px dashed var(--hc-muted);border-radius:0;width:16px}
-.nochart{display:flex;align-items:center;justify-content:center;min-height:96px;color:var(--hc-muted);font-size:12px;text-align:center}
 .per{display:flex;width:100%;margin-top:9px;background:var(--hc-bg);border:1px solid var(--hc-line);border-radius:14px;padding:3px}
 .per button{flex:1;border:0;background:none;border-radius:11px;padding:6px;min-height:32px;font-size:12px;font-weight:600;color:var(--hc-muted)}
 .per button[aria-pressed="true"]{background:var(--hc-accent);color:#fff}
@@ -605,11 +604,12 @@ button,input,select{font:inherit;color:inherit}
     }
     _chart(m) {
       const cfg = this._cfg, per = this._per, hs = m.house;
+      const hold = (msg) => '<svg class="ch" viewBox="0 0 ' + CW + ' ' + CH + '" aria-hidden="true"></svg>' + this._axis(m) + '<div class="cap">' + esc(msg) + '</div>';
       if (!m.D) {
         const slot = this._data[per];
-        return '<div class="nochart">' + esc(T(slot && !slot.busy ? 'nodata' : 'loading')) + '</div>';
+        return hold(T(slot && !slot.busy ? 'nodata' : 'loading'));
       }
-      if (!hs.avg || lastIdx(hs.avg) < 1 || hs.avg.filter((v) => v != null).length < 2) return '<div class="nochart">' + esc(T('nodata')) + '</div>';
+      if (!hs.avg || lastIdx(hs.avg) < 1 || hs.avg.filter((v) => v != null).length < 2) return hold(T('nodata'));
       const n = hs.avg.length, li = lastIdx(hs.avg);
       const cmp = cfg.compare && hs.prev && hs.prev.filter((v) => v != null).length >= 2;
       const all = hs.avg.filter((v) => v != null).concat(cmp ? hs.prev.filter((v) => v != null) : []);
@@ -635,7 +635,7 @@ button,input,select{font:inherit;color:inherit}
       return svg + this._axis(m) + '<div class="cap">' + (cmp ? cap : esc(cap)) + '</div>';
     }
     _bindScr() {
-      this._root.querySelectorAll('svg.ch').forEach((sv) => {
+      this._root.querySelectorAll('svg.ch[data-v]').forEach((sv) => {
         const per = sv.dataset.per, n = +sv.dataset.n, d0 = +sv.dataset.d0, d1 = +sv.dataset.d1, t0 = +sv.dataset.t0, step = +sv.dataset.step;
         const v = sv.dataset.v.split(',').map((s) => (s === '' ? null : Number(s))), g = sv.querySelector('.scr');
         const label = (i) => {
@@ -776,29 +776,53 @@ button,input,select{font:inherit;color:inherit}
         body = '<div class="mrow">' + cs.filter((c) => c.a.length).map((c) => '<div class="mcol">' + c.a.map((g) => this._accHTML(g, m)).join('') + '</div>').join('') + '</div>';
       }
       const x = '<button type="button" class="x" data-act="close" data-focus="close" aria-label="' + esc(T('close')) + '">' + ic('mdi:close') + '</button>';
-      return '<dialog class="ov" data-act="ovclose" aria-label="' + esc(T('details')) + '"><div class="dlg"><div class="mh"><h2 class="mt">' + esc(T('details')) + '</h2>' + x + '</div><div class="mb"><div class="cr"><div class="seg2" role="group"><button type="button" data-act="flt" data-f="att" aria-pressed="' + (this._flt === 'att') + '">' + esc(T('att')) + '</button><button type="button" data-act="flt" data-f="all" aria-pressed="' + (this._flt === 'all') + '">' + esc(T('all')) + '</button></div>' +
-        '<div class="seg2" role="group" aria-label="' + esc(T('period')) + '">' + ['1', '7', '30'].map((k) => '<button type="button" data-act="per" data-per="' + k + '" aria-pressed="' + (per === k) + '">' + esc(T('p' + k)) + '</button>').join('') + '</div></div>' + body + '</div></div></dialog>';
+      return '<div class="dlg"><div class="mh"><h2 class="mt">' + esc(T('details')) + '</h2>' + x + '</div><div class="mb"><div class="cr"><div class="seg2" role="group"><button type="button" data-act="flt" data-f="att" aria-pressed="' + (this._flt === 'att') + '">' + esc(T('att')) + '</button><button type="button" data-act="flt" data-f="all" aria-pressed="' + (this._flt === 'all') + '">' + esc(T('all')) + '</button></div>' +
+        '<div class="seg2" role="group" aria-label="' + esc(T('period')) + '">' + ['1', '7', '30'].map((k) => '<button type="button" data-act="per" data-per="' + k + '" aria-pressed="' + (per === k) + '">' + esc(T('p' + k)) + '</button>').join('') + '</div></div>' + body + '</div></div>';
     }
 
     /* ------------------------------------------------------------- render */
-    _render() {
-      const root = this._root, cfg = this._cfg;
-      if (!root || !cfg || !this._hass) return;
-      this._sl();
-      const m = this._model();
-      const body0 = root.querySelector('.mb'), keep = body0 ? body0.scrollTop : 0;
-      root.innerHTML = '<div class="hc" data-mode="' + this._mode() + '" data-cw="' + cfg.width + '"><div class="cardw"><div class="shell">' + this._cardHTML(m) + '</div></div>' + (this._popup ? this._popupHTML(m) : '') + '</div>';
-      const modal = root.querySelector('dialog.ov');
-      if (modal) {
-        modal.addEventListener('cancel', (ev) => ev.preventDefault());
-        try { if (typeof modal.showModal === 'function') modal.showModal(); else modal.setAttribute('open', ''); } catch (err) { modal.setAttribute('open', ''); }
+    _frame() {
+      const root = this._root;
+      if (!this._shell || !root.contains(this._shell)) {
+        root.innerHTML = '<div class="hc"><div class="cardw"><div class="shell"></div></div><div class="pp"></div></div>';
+        this._shell = root.querySelector('.shell'); this._pp = root.querySelector('.pp'); this._hcEl = root.querySelector('.hc');
       }
+      this._hcEl.setAttribute('data-mode', this._mode()); this._hcEl.setAttribute('data-cw', this._cfg.width);
+    }
+    _render() {
+      const cfg = this._cfg;
+      if (!this._root || !cfg || !this._hass) return;
+      this._sl(); this._frame();
+      const m = this._model();
+      this._shell.innerHTML = this._cardHTML(m);
       this._bindScr();
-      const nb = root.querySelector('.mb');
+      this._renderPopup(m);
+    }
+    // The popup lives in its own container: opening, closing or updating it never rebuilds the card behind it.
+    _renderPopup(m) {
+      if (!this._cfg || !this._hass) return;
+      this._sl(); this._frame();
+      const pp = this._pp;
+      if (!this._popup) { if (pp.firstChild) pp.innerHTML = ''; return; }
+      m = m || this._model();
+      let modal = pp.querySelector('dialog.ov');
+      const fresh = !modal;
+      if (fresh) {
+        pp.innerHTML = '<dialog class="ov" data-act="ovclose" aria-label="' + esc(T('details')) + '"></dialog>';
+        modal = pp.querySelector('dialog.ov');
+        modal.addEventListener('cancel', (ev) => ev.preventDefault());
+      }
+      const body0 = modal.querySelector('.mb'), keep = body0 ? body0.scrollTop : 0;
+      modal.setAttribute('aria-label', T('details'));
+      modal.innerHTML = this._popupHTML(m);
+      if (fresh) {
+        try { if (typeof modal.showModal === 'function') modal.showModal(); else modal.setAttribute('open', ''); } catch (err) { modal.setAttribute('open', ''); }
+        this._lockScroll();
+      }
+      const nb = modal.querySelector('.mb');
       if (nb) nb.scrollTop = keep;
-      if (this._popup) this._lockScroll();
       if (this._focus) {
-        const el = root.querySelector('[data-focus="' + this._focus + '"]');
+        const el = this._root.querySelector('[data-focus="' + this._focus + '"]');
         if (el) { try { el.focus({ preventScroll: true }); } catch (err) { /* ignore */ } }
         this._focus = '';
       }
@@ -806,12 +830,12 @@ button,input,select{font:inherit;color:inherit}
     _lockScroll() {
       const overlay = this._root.querySelector('.ov');
       if (!overlay) return;
-      const body = overlay.querySelector('.mb');
-      const atEdge = (dy) => !body || (dy < 0 && body.scrollTop <= 0) || (dy > 0 && body.scrollTop + body.clientHeight >= body.scrollHeight - 1);
-      overlay.addEventListener('wheel', (e) => { if (!body || !body.contains(e.target) || atEdge(e.deltaY)) e.preventDefault(); }, { passive: false });
+      const body = () => overlay.querySelector('.mb');
+      const atEdge = (dy) => { const b = body(); return !b || (dy < 0 && b.scrollTop <= 0) || (dy > 0 && b.scrollTop + b.clientHeight >= b.scrollHeight - 1); };
+      overlay.addEventListener('wheel', (e) => { const b = body(); if (!b || !b.contains(e.target) || atEdge(e.deltaY)) e.preventDefault(); }, { passive: false });
       let y = 0;
       overlay.addEventListener('touchstart', (e) => { const t = e.touches[0]; y = t ? t.clientY : 0; }, { passive: true });
-      overlay.addEventListener('touchmove', (e) => { const t = e.touches[0], dy = y - (t ? t.clientY : y); if (!body || !body.contains(e.target) || atEdge(dy)) e.preventDefault(); }, { passive: false });
+      overlay.addEventListener('touchmove', (e) => { const b = body(), t = e.touches[0], dy = y - (t ? t.clientY : y); if (!b || !b.contains(e.target) || atEdge(dy)) e.preventDefault(); }, { passive: false });
     }
 
     _open(focus) {
@@ -819,13 +843,16 @@ button,input,select{font:inherit;color:inherit}
       this._flt = m.attn.length ? 'att' : 'all'; this._openR = {};
       this._ret = focus || 'chip'; this._popup = true; this._focus = 'close';
       document.addEventListener('keydown', this._onKey, true);
-      this._render();
+      this._renderPopup();
     }
     _close() {
       if (!this._popup) return;
       this._popup = false; this._focus = this._ret;
       document.removeEventListener('keydown', this._onKey, true);
-      this._render();
+      this._renderPopup();
+      const el = this._root.querySelector('[data-focus="' + this._focus + '"]');
+      if (el) { try { el.focus({ preventScroll: true }); } catch (err) { /* ignore */ } }
+      this._focus = '';
     }
     _click(e) {
       const t = e.target.closest ? e.target.closest('[data-act]') : null;
@@ -835,12 +862,12 @@ button,input,select{font:inherit;color:inherit}
       if (a === 'ovclose') { if (e.target === t) this._close(); return; }
       if (a === 'open') { this._open(t.dataset.focus); return; }
       if (a === 'close') { this._close(); return; }
-      if (a === 'flt') { this._flt = t.dataset.f; this._render(); return; }
+      if (a === 'flt') { this._flt = t.dataset.f; this._renderPopup(); return; }
       if (a === 'per') { this._per = t.dataset.per; this._maybeData(); this._render(); return; }
       if (a === 'leg') { this._leg = !this._leg; this._render(); return; }
       if (a === 'room') {
         const k = t.dataset.room, g = this._groups(this._model()).filter((x) => x.r.key === k)[0];
-        if (g) { this._openR[k] = !this._isOpen(g); this._render(); }
+        if (g) { this._openR[k] = !this._isOpen(g); this._renderPopup(); }
       }
     }
     _key(e) {
