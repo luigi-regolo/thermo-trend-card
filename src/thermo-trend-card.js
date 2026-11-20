@@ -799,9 +799,26 @@ button,input,select{font:inherit;color:inherit}
       if (!this._root || !cfg || !this._hass) return;
       this._sl(); this._frame();
       const m = this._model();
-      this._shell.innerHTML = this._cardHTML(m);
+      // Keep the page still while the card is rewritten: hold its height and put back any scroll position the browser moves.
+      const sh = this._shell, h0 = sh.offsetHeight, sc = this._scrollers();
+      if (h0 > 0) sh.style.minHeight = h0 + 'px';
+      sh.innerHTML = this._cardHTML(m);
       this._bindScr();
       this._renderPopup(m);
+      const back = () => sc.forEach((x) => { if (Math.abs(x.el.scrollTop - x.top) > 1) x.el.scrollTop = x.top; });
+      back();
+      requestAnimationFrame(() => { back(); requestAnimationFrame(() => { back(); sh.style.minHeight = ''; }); });
+    }
+    _scrollers() {
+      const out = [];
+      let n = this;
+      while (n) {
+        if (n.nodeType === 1 && n.scrollHeight > n.clientHeight + 1 && /(auto|scroll)/.test(getComputedStyle(n).overflowY)) out.push({ el: n, top: n.scrollTop });
+        n = n.parentElement || (n.getRootNode && n.getRootNode().host) || null;
+      }
+      const se = document.scrollingElement;
+      if (se && !out.some((x) => x.el === se)) out.push({ el: se, top: se.scrollTop });
+      return out;
     }
     // The popup lives in its own container: opening, closing or updating it never rebuilds the card behind it.
     _renderPopup(m) {
@@ -837,7 +854,7 @@ button,input,select{font:inherit;color:inherit}
     _pinH(modal) {
       const vh = window.innerHeight || 0;
       this._pinW = window.innerWidth;
-      const h = this._root.host && this._root.host.getAttribute('data-popup') === 'wide' ? Math.min(vh * 0.8, 560) : Math.min(vh - 40, 680);
+      const h = this.getAttribute('data-popup') === 'wide' ? Math.min(vh * 0.8, 560) : Math.min(vh - 40, 680);
       if (h > 200) modal.style.setProperty('--dh', Math.round(h) + 'px');
     }
     _lockScroll() {
