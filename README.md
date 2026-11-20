@@ -1,6 +1,7 @@
 # Thermo Trend Card
 
-[![Release](https://img.shields.io/github/v/release/luigi-regolo/thermo-trend-card?style=flat-square)](https://github.com/luigi-regolo/thermo-trend-card/releases)
+[![Marketplace](https://img.shields.io/badge/Marketplace-41BDF5?style=flat-square)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=luigi-regolo&repository=thermo-trend-card&category=plugin)
+[![Release](https://img.shields.io/github/v/release/luigi-regolo/thermo-trend-card?label=Release&style=flat-square)](https://github.com/luigi-regolo/thermo-trend-card/releases/latest)
 [![License: GPL-3.0-only](https://img.shields.io/badge/license-GPL--3.0--only-blue?style=flat-square)](LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/luigi-regolo/thermo-trend-card?style=flat-square)](https://github.com/luigi-regolo/thermo-trend-card/stargazers)
 
@@ -53,15 +54,17 @@ Unavailable or unknown sensors are always reported as not available and never co
 
 ## Installation
 
-### Marketplace — Custom repository
+### Marketplace (Recommended)
 
-Thermo Trend Card can be added to the Home Assistant Marketplace from its GitHub repository.
+Install Thermo Trend Card directly from the default Marketplace catalog in Home Assistant 2026.11 or newer.
+
+[![Open Thermo Trend Card in the Marketplace](https://my.home-assistant.io/badges/marketplace_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=luigi-regolo&repository=thermo-trend-card&category=plugin)
 
 1. Go to **Settings** > **Marketplace**.
-2. The first time, accept the notice about community content and connect your GitHub account when asked.
-3. Choose **Add from link** and paste `https://github.com/luigi-regolo/thermo-trend-card`.
-4. If asked, choose the **Dashboard** type.
-5. Open **Thermo Trend Card** and select **Install**.
+2. The first time, accept the notice about community content.
+3. Use **Search** to find **Thermo Trend Card**.
+4. Open the repository page and select **Install**.
+5. Check the version in the dialog and select **Install** again to confirm.
 6. Reload your browser to load the new resource.
 7. Add **Thermo Trend Card** to your dashboard and configure it using the visual editor.
 
