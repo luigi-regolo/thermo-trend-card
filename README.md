@@ -1,5 +1,6 @@
 # Thermo Trend Card
 
+[![Release](https://img.shields.io/github/v/release/luigi-regolo/thermo-trend-card?style=flat-square)](https://github.com/luigi-regolo/thermo-trend-card/releases)
 [![License: GPL-3.0-only](https://img.shields.io/badge/license-GPL--3.0--only-blue?style=flat-square)](LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/luigi-regolo/thermo-trend-card?style=flat-square)](https://github.com/luigi-regolo/thermo-trend-card/stargazers)
 
@@ -110,6 +111,10 @@ The card interface is available in Italian, English, German and French. Names of
 No specific minimum Home Assistant version has been independently verified for this repository.
 
 The card does not require a dedicated paid service or additional remote JavaScript libraries.
+
+## Releases
+
+See the [GitHub Releases](https://github.com/luigi-regolo/thermo-trend-card/releases) page for the published versions.
 
 ## Privacy and Security
 
