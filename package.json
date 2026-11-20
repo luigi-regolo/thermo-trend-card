@@ -1,0 +1,12 @@
+{
+  "name": "thermo-trend-card",
+  "version": "1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node --check src/thermo-trend-card.js && node --check dist/thermo-trend-card.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
