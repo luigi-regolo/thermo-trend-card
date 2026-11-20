@@ -347,8 +347,8 @@ button:focus-visible{outline:2px solid var(--hc-accent);outline-offset:2px}
 /* popup: fixed centred dialog, same rules as the other cards */
 .ov{position:fixed;inset:0;margin:0;width:100%;height:100%;max-width:none;max-height:none;border:0;z-index:9999;overscroll-behavior:contain;overflow:hidden;color:inherit;background:#0009;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
 .ov:not([open]){display:none}.ov[open]{display:flex}.ov::backdrop{background:transparent}
-.dlg{width:min(390px,100%);max-width:100%;min-width:0;align-self:center;height:min(calc(100vh - 40px),680px);height:min(calc(100dvh - 40px),680px);display:flex;flex-direction:column;background:var(--hc-bg);color:var(--hc-fg);border:1px solid var(--hc-line);border-radius:26px;overflow:hidden;box-shadow:0 18px 60px #0005}
-:host([data-popup="wide"]) .dlg{width:min(1120px,100%);height:min(80vh,560px);height:min(80dvh,560px)}
+.dlg{width:min(390px,100%);max-width:100%;max-height:100%;min-width:0;align-self:center;height:min(calc(100vh - 40px),680px);height:var(--dh,min(calc(100dvh - 40px),680px));display:flex;flex-direction:column;background:var(--hc-bg);color:var(--hc-fg);border:1px solid var(--hc-line);border-radius:26px;overflow:hidden;box-shadow:0 18px 60px #0005}
+:host([data-popup="wide"]) .dlg{width:min(1120px,100%);height:min(80vh,560px);height:var(--dh,min(80dvh,560px))}
 .mh{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 16px 12px 18px;background:var(--hc-bg);border-bottom:1px solid var(--hc-line)}
 .mt{flex:1;min-width:0;margin:0;font-size:17px;font-weight:600;line-height:1.3}
 .x{display:grid;place-items:center;line-height:0;margin:0;padding:0;width:40px;height:40px;flex:none;border:1px solid var(--hc-line);border-radius:50%;background:var(--hc-tile);color:var(--hc-fg)}
@@ -442,7 +442,12 @@ button,input,select{font:inherit;color:inherit}
       this._per = '1'; this._data = {}; this._dver = 0;
       this._popup = false; this._flt = 'att'; this._openR = {}; this._leg = false; this._focus = ''; this._ret = '';
       this._onKey = (e) => this._key(e);
-      this._onResize = () => { this._applyLayout(); if (this._popup) this._render(); };
+      this._onResize = () => {
+        this._applyLayout();
+        if (!this._popup) return;
+        const dlg = this._root && this._root.querySelector('dialog.ov');
+        if (dlg && window.innerWidth !== this._pinW) { dlg.style.removeProperty('--dh'); this._pinH(dlg); }
+      };
       this._timer = null;
       this.shadowRoot.addEventListener('click', (e) => this._click(e));
     }
@@ -696,7 +701,7 @@ button,input,select{font:inherit;color:inherit}
 
     /* -------------------------------------------------------------- popup */
     _groups(m) {
-      const cfg = this._cfg, h = this._hass, per = this._per, D = m.D;
+      const cfg = this._cfg, h = this._hass, per = this._per, D = m.D, sl0 = this._data[per], pend = !sl0 || sl0.busy;
       return m.rooms.map((r) => {
         const rows = [];
         cfg.order.forEach((k) => {
@@ -705,15 +710,15 @@ button,input,select{font:inherit;color:inherit}
             r.temps.forEach((id) => {
               const s = stOf(h, id), v = numOf(s), e = D && D.ent[id];
               const st = v == null ? 'na' : v < cfg.comfort_min ? 'cold' : v > cfg.comfort_max ? 'hot' : 'ok';
-              const l = []; let d = null, series = null;
+              const l = []; let d = null, series = null, ph = false;
               if (v == null) l.push(T('na'));
               else if (e) {
                 const f0 = firstOf(e.cur.b);
                 if (f0 != null) { d = v - f0; l.push(T('var_', { p: T('s' + per) })); }
                 if (e.cur.mn != null && e.cur.mx != null) l.push(T('minmax', { a: fmt(e.cur.mn), b: fmt(e.cur.mx) }));
                 series = e.cur.b;
-              }
-              rows.push({ id: id, icon: 'mdi:thermometer', s: st, n: r.temps.length === 1 ? T('temp') : nameOf(s, id), l: l, v: v == null ? '—' : fmt(v) + uOf(s), d: d, series: series });
+              } else if (D === null && pend) { ph = true; l.push('\u00a0', '\u00a0'); }
+              rows.push({ id: id, icon: 'mdi:thermometer', s: st, n: r.temps.length === 1 ? T('temp') : nameOf(s, id), l: l, v: v == null ? '—' : fmt(v) + uOf(s), d: d, series: series, ph: ph });
             });
           } else if (k === 'hum') {
             r.hum.forEach((id) => {
@@ -760,8 +765,8 @@ button,input,select{font:inherit;color:inherit}
       const open = this._isOpen(g), r = g.r;
       const hv = r.cur != null ? fmt(r.cur) + r.unit : g.rows[0].v;
       return '<div class="acc' + (open ? ' open' : '') + '"><button type="button" class="ah" data-act="room" data-room="' + esc(r.key) + '" aria-expanded="' + open + '"><i class="dtp ' + r.s + '"></i><span class="an">' + esc(r.name) + '</span><span class="at">' + esc(hv) + '</span>' + ic('mdi:chevron-right') + '</button><div class="ab">' + this._banner(g) +
-        g.rows.map((x) => '<div class="er ' + (x.s !== 'ok' ? x.s : '') + '"><span class="ico">' + ic(x.icon) + '</span><div class="t"><div class="n">' + esc(x.n) + '</div>' + x.l.map((l) => '<div class="s">' + esc(l) + '</div>').join('') + '</div><div class="vr"><div class="v">' + esc(x.v) + '</div>' + (x.d != null ? chipHTML(x.d) : '') + '</div>' +
-          (x.series ? '<div class="rbw">' + this._ribbon(x.series) + this._axis(m) + '</div>' : '') + '</div>').join('') + '</div></div>';
+        g.rows.map((x) => '<div class="er ' + (x.s !== 'ok' ? x.s : '') + '"><span class="ico">' + ic(x.icon) + '</span><div class="t"><div class="n">' + esc(x.n) + '</div>' + x.l.map((l) => '<div class="s">' + esc(l) + '</div>').join('') + '</div><div class="vr"><div class="v">' + esc(x.v) + '</div>' + (x.d != null ? chipHTML(x.d) : x.ph ? '<span style="visibility:hidden">' + chipHTML(0) + '</span>' : '') + '</div>' +
+          (x.series ? '<div class="rbw">' + this._ribbon(x.series) + this._axis(m) + '</div>' : x.ph ? '<div class="rbw"><div class="rb"></div>' + this._axis(m) + '</div>' : '') + '</div>').join('') + '</div></div>';
     }
     _popupHTML(m) {
       const cfg = this._cfg, per = this._per, wide = this._wide();
@@ -816,6 +821,7 @@ button,input,select{font:inherit;color:inherit}
       modal.setAttribute('aria-label', T('details'));
       modal.innerHTML = this._popupHTML(m);
       if (fresh) {
+        this._pinH(modal);
         try { if (typeof modal.showModal === 'function') modal.showModal(); else modal.setAttribute('open', ''); } catch (err) { modal.setAttribute('open', ''); }
         this._lockScroll();
       }
@@ -826,6 +832,13 @@ button,input,select{font:inherit;color:inherit}
         if (el) { try { el.focus({ preventScroll: true }); } catch (err) { /* ignore */ } }
         this._focus = '';
       }
+    }
+    // Fixes the sheet height at open: on iOS the browser bars change the viewport height while the popup is open, which made the sheet resize and show the card behind it.
+    _pinH(modal) {
+      const vh = window.innerHeight || 0;
+      this._pinW = window.innerWidth;
+      const h = this._root.host && this._root.host.getAttribute('data-popup') === 'wide' ? Math.min(vh * 0.8, 560) : Math.min(vh - 40, 680);
+      if (h > 200) modal.style.setProperty('--dh', Math.round(h) + 'px');
     }
     _lockScroll() {
       const overlay = this._root.querySelector('.ov');
